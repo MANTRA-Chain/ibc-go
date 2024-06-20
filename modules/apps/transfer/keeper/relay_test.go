@@ -111,6 +111,18 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, false,
 		},
 		{
+			"not allowed denom transfer failed",
+			func() {
+				coin = sdk.NewCoin("pool1", sdkmath.NewInt(100))
+			}, false,
+		},
+		{
+			"not allowed denom transfer failed - 2",
+			func() {
+				coin = sdk.NewCoin("pool2", sdkmath.NewInt(100))
+			}, false,
+		},
+		{
 			"SendPacket fails, timeout height and timeout timestamp are zero",
 			func() {
 				timeoutHeight = clienttypes.ZeroHeight()
