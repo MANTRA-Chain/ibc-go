@@ -56,6 +56,11 @@ type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
 }
 
+type GuardKeeper interface {
+	AddTransferAccAddressesWhitelist(addresses []string) []string
+	RemoveTransferAccAddressesWhitelist(addresses []string)
+}
+
 // ParamSubspace defines the expected Subspace interface for module parameters.
 type ParamSubspace interface {
 	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)

@@ -35,14 +35,14 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  exported.ScopedKeeper
-
+	gk            types.GuardKeeper
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
 }
 
-// NewKeeper creates a new IBC transfer Keeper instance
-func NewKeeper(
+// NewKeeper creates a new IBC transfer Keeper instance with guard
+func NewKeeperWithGuard(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
 	legacySubspace types.ParamSubspace,
@@ -52,6 +52,7 @@ func NewKeeper(
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	scopedKeeper exported.ScopedKeeper,
+	gk types.GuardKeeper,
 	authority string,
 ) Keeper {
 	// ensure ibc transfer module account is set
@@ -73,8 +74,26 @@ func NewKeeper(
 		authKeeper:     authKeeper,
 		bankKeeper:     bankKeeper,
 		scopedKeeper:   scopedKeeper,
+		gk:             gk,
 		authority:      authority,
 	}
+}
+
+// NewKeeper creates a new IBC transfer Keeper instance
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	legacySubspace types.ParamSubspace,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	authKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	scopedKeeper exported.ScopedKeeper,
+	authority string,
+) Keeper {
+	return NewKeeperWithGuard(cdc, key, legacySubspace, ics4Wrapper, channelKeeper, portKeeper,
+		authKeeper, bankKeeper, scopedKeeper, nil, authority)
 }
 
 // WithICS4Wrapper sets the ICS4Wrapper. This function may be used after

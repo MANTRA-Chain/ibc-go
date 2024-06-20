@@ -68,6 +68,10 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
+	if strings.HasPrefix(token.Denom, "pool") {
+		return 0, errorsmod.Wrap(types.ErrNotAllowedDenom, token.Denom)
+	}
+
 	destinationPort := channel.GetCounterparty().GetPortID()
 	destinationChannel := channel.GetCounterparty().GetChannelID()
 
@@ -106,8 +110,17 @@ func (k Keeper) sendTransfer(
 
 		// obtain the escrow address for the source channel end
 		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-		if err := k.escrowToken(ctx, sender, escrowAddress, token); err != nil {
-			return 0, err
+		if k.gk != nil {
+			whitelisted := k.gk.AddTransferAccAddressesWhitelist([]string{escrowAddress.String()})
+			err := k.escrowToken(ctx, sender, escrowAddress, token)
+			k.gk.RemoveTransferAccAddressesWhitelist(whitelisted)
+			if err != nil {
+				return 0, err
+			}
+		} else {
+			if err := k.escrowToken(ctx, sender, escrowAddress, token); err != nil {
+				return 0, err
+			}
 		}
 
 	} else {
@@ -220,8 +233,17 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-		if err := k.unescrowToken(ctx, escrowAddress, receiver, token); err != nil {
-			return err
+		if k.gk != nil {
+			whitelisted := k.gk.AddTransferAccAddressesWhitelist([]string{escrowAddress.String()})
+			err := k.unescrowToken(ctx, escrowAddress, receiver, token)
+			k.gk.RemoveTransferAccAddressesWhitelist(whitelisted)
+			if err != nil {
+				return err
+			}
+		} else {
+			if err := k.unescrowToken(ctx, escrowAddress, receiver, token); err != nil {
+				return err
+			}
 		}
 
 		defer func() {
@@ -356,7 +378,14 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	if types.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
 		// unescrow tokens back to sender
 		escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-		return k.unescrowToken(ctx, escrowAddress, sender, token)
+		if k.gk != nil {
+			whitelisted := k.gk.AddTransferAccAddressesWhitelist([]string{escrowAddress.String()})
+			err := k.unescrowToken(ctx, escrowAddress, sender, token)
+			k.gk.RemoveTransferAccAddressesWhitelist(whitelisted)
+			return err
+		} else {
+			return k.unescrowToken(ctx, escrowAddress, sender, token)
+		}
 	}
 
 	// mint vouchers back to sender
