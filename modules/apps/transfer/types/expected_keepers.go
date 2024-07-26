@@ -57,8 +57,8 @@ type PortKeeper interface {
 }
 
 type GuardKeeper interface {
-	AddTransferAccAddressesWhitelist(addresses []string) []string
-	RemoveTransferAccAddressesWhitelist(addresses []string)
+	AddTransferAccAddressesWhitelist(ctx sdk.Context, addresses []sdk.AccAddress) []sdk.AccAddress
+	RemoveTransferAccAddressesWhitelist(ctx sdk.Context, addresses []sdk.AccAddress)
 }
 
 // ParamSubspace defines the expected Subspace interface for module parameters.
