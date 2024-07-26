@@ -110,10 +110,10 @@ func (k Keeper) sendTransfer(
 
 		// obtain the escrow address for the source channel end
 		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-		if k.gk != nil {
-			whitelisted := k.gk.AddTransferAccAddressesWhitelist([]string{escrowAddress.String()})
+		if k.guardKeeper != nil {
+			whitelisted := k.guardKeeper.AddTransferAccAddressesWhitelist(ctx, []sdk.AccAddress{escrowAddress})
 			err := k.escrowToken(ctx, sender, escrowAddress, token)
-			k.gk.RemoveTransferAccAddressesWhitelist(whitelisted)
+			k.guardKeeper.RemoveTransferAccAddressesWhitelist(ctx, whitelisted)
 			if err != nil {
 				return 0, err
 			}
@@ -233,10 +233,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-		if k.gk != nil {
-			whitelisted := k.gk.AddTransferAccAddressesWhitelist([]string{escrowAddress.String()})
+		if k.guardKeeper != nil {
+			whitelisted := k.guardKeeper.AddTransferAccAddressesWhitelist(ctx, []sdk.AccAddress{escrowAddress})
 			err := k.unescrowToken(ctx, escrowAddress, receiver, token)
-			k.gk.RemoveTransferAccAddressesWhitelist(whitelisted)
+			k.guardKeeper.RemoveTransferAccAddressesWhitelist(ctx, whitelisted)
 			if err != nil {
 				return err
 			}
@@ -378,10 +378,10 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	if types.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
 		// unescrow tokens back to sender
 		escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-		if k.gk != nil {
-			whitelisted := k.gk.AddTransferAccAddressesWhitelist([]string{escrowAddress.String()})
+		if k.guardKeeper != nil {
+			whitelisted := k.guardKeeper.AddTransferAccAddressesWhitelist(ctx, []sdk.AccAddress{escrowAddress})
 			err := k.unescrowToken(ctx, escrowAddress, sender, token)
-			k.gk.RemoveTransferAccAddressesWhitelist(whitelisted)
+			k.guardKeeper.RemoveTransferAccAddressesWhitelist(ctx, whitelisted)
 			return err
 		} else {
 			return k.unescrowToken(ctx, escrowAddress, sender, token)

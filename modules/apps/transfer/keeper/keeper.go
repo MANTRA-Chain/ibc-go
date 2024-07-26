@@ -35,7 +35,7 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  exported.ScopedKeeper
-	gk            types.GuardKeeper
+	guardKeeper   types.GuardKeeper
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -52,7 +52,7 @@ func NewKeeperWithGuard(
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	scopedKeeper exported.ScopedKeeper,
-	gk types.GuardKeeper,
+	guardKeeper types.GuardKeeper,
 	authority string,
 ) Keeper {
 	// ensure ibc transfer module account is set
@@ -74,7 +74,7 @@ func NewKeeperWithGuard(
 		authKeeper:     authKeeper,
 		bankKeeper:     bankKeeper,
 		scopedKeeper:   scopedKeeper,
-		gk:             gk,
+		guardKeeper:    guardKeeper,
 		authority:      authority,
 	}
 }
